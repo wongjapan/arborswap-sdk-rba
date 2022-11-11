@@ -86,8 +86,8 @@ export const WETH = {
     ChainId.ROBURNA,
     '0x238F5666A0f12c571B7B3fBd5b5a434146dFa0C5',
     18,
-    'WBNB',
-    'Wrapped BNB',
-    'https://www.binance.org'
+    'WRBA',
+    'Wrapped RBA',
+    'https://www.roburna.com'
   )
 }

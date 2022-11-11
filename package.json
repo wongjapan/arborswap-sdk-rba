@@ -1,5 +1,5 @@
 {
-  "name": "@arborswap/sdk",
+  "name": "@arborswap/sdk-rba",
   "license": "MIT",
   "version": "0.1.3",
   "description": "🛠 An SDK for building applications on top of Arborswap.",
@@ -8,10 +8,10 @@
   "files": [
     "dist"
   ],
-  "repository": "https://github.com/wongjapan/arborswap-sdk.git",
+  "repository": "https://github.com/wongjapan/arborswap-sdk-rba.git",
   "keywords": [
     "arborswap",
-    "bsc"
+    "rba"
   ],
   "module": "dist/sdk.esm.js",
   "scripts": {
