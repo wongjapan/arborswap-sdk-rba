@@ -1,5 +1,5 @@
 {
-  "name": "@arborswap/sdk-rba",
+  "name": "@arborswap/sdk",
   "license": "MIT",
   "version": "0.1.4",
   "description": "🛠 An SDK for building applications on top of Arborswap.",
