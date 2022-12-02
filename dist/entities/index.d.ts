@@ -1,5 +1,6 @@
 export * from './token';
 export * from './pair';
+export * from './externalpair';
 export * from './route';
 export * from './trade';
 export * from './currency';

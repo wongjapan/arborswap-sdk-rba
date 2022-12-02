@@ -11,7 +11,7 @@ import { Contract } from '@ethersproject/contracts';
 import { getNetwork } from '@ethersproject/networks';
 import { getDefaultProvider } from '@ethersproject/providers';
 
-var _FACTORY_ADDRESS_MAP, _INIT_CODE_HASH_MAP, _SOLIDITY_TYPE_MAXIMA;
+var _FACTORY_ADDRESS_MAP, _EXTERNAL_FACTORY_ADD, _INIT_CODE_HASH_MAP, _EXTERNAL_CODE_HASH_M, _SOLIDITY_TYPE_MAXIMA;
 var ChainId;
 
 (function (ChainId) {
@@ -36,11 +36,15 @@ var Rounding;
 })(Rounding || (Rounding = {}));
 
 var FACTORY_ADDRESS = '0x0de73FE9d848A68Aba41c3edcd2C69301a7f4573';
+var FACTORY_ADDRESS_EXTERNAL = '0xD3c5FF3f6C4E9Aa876E563f4cb04d3020CFC8Ad9';
 var FACTORY_ADDRESS_ROBURNA = '0x0de73FE9d848A68Aba41c3edcd2C69301a7f4573';
 var FACTORY_ADDRESS_MAP = (_FACTORY_ADDRESS_MAP = {}, _FACTORY_ADDRESS_MAP[ChainId.MAINNET] = FACTORY_ADDRESS, _FACTORY_ADDRESS_MAP[ChainId.TESTNET] = FACTORY_ADDRESS, _FACTORY_ADDRESS_MAP[ChainId.ROBURNA] = FACTORY_ADDRESS_ROBURNA, _FACTORY_ADDRESS_MAP);
+var EXTERNAL_FACTORY_ADDRESS_MAP = (_EXTERNAL_FACTORY_ADD = {}, _EXTERNAL_FACTORY_ADD[ChainId.MAINNET] = FACTORY_ADDRESS_EXTERNAL, _EXTERNAL_FACTORY_ADD[ChainId.TESTNET] = FACTORY_ADDRESS_EXTERNAL, _EXTERNAL_FACTORY_ADD[ChainId.ROBURNA] = FACTORY_ADDRESS_EXTERNAL, _EXTERNAL_FACTORY_ADD);
 var INIT_CODE_HASH = '0x2e26c6a371cb994ce7b30f334480a5782dff687140d5608ced830fc138a0ed7b';
+var INIT_CODE_HASH_EXTERNAL = '0xc1356d02a24c59f29ae5ee0746a3c82345d8817f2dc7e93b56110d5690e5f242';
 var INIT_CODE_HASH_ROBURNA = '0x2e26c6a371cb994ce7b30f334480a5782dff687140d5608ced830fc138a0ed7b';
 var INIT_CODE_HASH_MAP = (_INIT_CODE_HASH_MAP = {}, _INIT_CODE_HASH_MAP[ChainId.MAINNET] = INIT_CODE_HASH, _INIT_CODE_HASH_MAP[ChainId.TESTNET] = INIT_CODE_HASH, _INIT_CODE_HASH_MAP[ChainId.ROBURNA] = INIT_CODE_HASH_ROBURNA, _INIT_CODE_HASH_MAP);
+var EXTERNAL_CODE_HASH_MAP = (_EXTERNAL_CODE_HASH_M = {}, _EXTERNAL_CODE_HASH_M[ChainId.MAINNET] = INIT_CODE_HASH_EXTERNAL, _EXTERNAL_CODE_HASH_M[ChainId.TESTNET] = INIT_CODE_HASH_EXTERNAL, _EXTERNAL_CODE_HASH_M[ChainId.ROBURNA] = INIT_CODE_HASH_EXTERNAL, _EXTERNAL_CODE_HASH_M);
 var MINIMUM_LIQUIDITY = /*#__PURE__*/JSBI.BigInt(1000); // exports for internal consumption
 
 var ZERO = /*#__PURE__*/JSBI.BigInt(0);
@@ -970,6 +974,211 @@ var Pair = /*#__PURE__*/function () {
   }]);
 
   return Pair;
+}();
+
+var PAIR_ADDRESS_CACHE$1 = {};
+
+var composeKey$1 = function composeKey(token0, token1) {
+  return token0.chainId + "-" + token0.address + "-" + token1.address;
+};
+
+var PairExternal = /*#__PURE__*/function () {
+  function PairExternal(tokenAmountA, tokenAmountB) {
+    var tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
+    ? [tokenAmountA, tokenAmountB] : [tokenAmountB, tokenAmountA];
+    this.liquidityToken = new Token(tokenAmounts[0].token.chainId, PairExternal.getAddress(tokenAmounts[0].token, tokenAmounts[1].token), 18, 'Arbor-LPs', 'Arbor LPs');
+    this.tokenAmounts = tokenAmounts;
+  }
+
+  PairExternal.getAddress = function getAddress(tokenA, tokenB) {
+    var _PAIR_ADDRESS_CACHE;
+
+    var _ref = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA],
+        token0 = _ref[0],
+        token1 = _ref[1]; // does safety checks
+
+
+    var key = composeKey$1(token0, token1);
+
+    if (((_PAIR_ADDRESS_CACHE = PAIR_ADDRESS_CACHE$1) === null || _PAIR_ADDRESS_CACHE === void 0 ? void 0 : _PAIR_ADDRESS_CACHE[key]) === undefined) {
+      var _extends2;
+
+      PAIR_ADDRESS_CACHE$1 = _extends({}, PAIR_ADDRESS_CACHE$1, (_extends2 = {}, _extends2[key] = getCreate2Address(EXTERNAL_FACTORY_ADDRESS_MAP[token0.chainId], keccak256(['bytes'], [pack(['address', 'address'], [token0.address, token1.address])]), EXTERNAL_CODE_HASH_MAP[token0.chainId]), _extends2));
+    }
+
+    return PAIR_ADDRESS_CACHE$1[key];
+  }
+  /**
+   * Returns true if the token is either token0 or token1
+   * @param token to check
+   */
+  ;
+
+  var _proto = PairExternal.prototype;
+
+  _proto.involvesToken = function involvesToken(token) {
+    return token.equals(this.token0) || token.equals(this.token1);
+  }
+  /**
+   * Returns the current mid price of the pair in terms of token0, i.e. the ratio of reserve1 to reserve0
+   */
+  ;
+
+  /**
+   * Return the price of the given token in terms of the other token in the pair.
+   * @param token token to return price of
+   */
+  _proto.priceOf = function priceOf(token) {
+    !this.involvesToken(token) ? process.env.NODE_ENV !== "production" ? invariant(false, 'TOKEN') : invariant(false) : void 0;
+    return token.equals(this.token0) ? this.token0Price : this.token1Price;
+  }
+  /**
+   * Returns the chain ID of the tokens in the pair.
+   */
+  ;
+
+  _proto.reserveOf = function reserveOf(token) {
+    !this.involvesToken(token) ? process.env.NODE_ENV !== "production" ? invariant(false, 'TOKEN') : invariant(false) : void 0;
+    return token.equals(this.token0) ? this.reserve0 : this.reserve1;
+  };
+
+  _proto.getOutputAmount = function getOutputAmount(inputAmount) {
+    !this.involvesToken(inputAmount.token) ? process.env.NODE_ENV !== "production" ? invariant(false, 'TOKEN') : invariant(false) : void 0;
+
+    if (JSBI.equal(this.reserve0.raw, ZERO) || JSBI.equal(this.reserve1.raw, ZERO)) {
+      throw new InsufficientReservesError();
+    }
+
+    var inputReserve = this.reserveOf(inputAmount.token);
+    var outputReserve = this.reserveOf(inputAmount.token.equals(this.token0) ? this.token1 : this.token0);
+    var inputAmountWithFee = JSBI.multiply(inputAmount.raw, FEES_NUMERATOR);
+    var numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw);
+    var denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), inputAmountWithFee);
+    var outputAmount = new TokenAmount(inputAmount.token.equals(this.token0) ? this.token1 : this.token0, JSBI.divide(numerator, denominator));
+
+    if (JSBI.equal(outputAmount.raw, ZERO)) {
+      throw new InsufficientInputAmountError();
+    }
+
+    return [outputAmount, new PairExternal(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))];
+  };
+
+  _proto.getInputAmount = function getInputAmount(outputAmount) {
+    !this.involvesToken(outputAmount.token) ? process.env.NODE_ENV !== "production" ? invariant(false, 'TOKEN') : invariant(false) : void 0;
+
+    if (JSBI.equal(this.reserve0.raw, ZERO) || JSBI.equal(this.reserve1.raw, ZERO) || JSBI.greaterThanOrEqual(outputAmount.raw, this.reserveOf(outputAmount.token).raw)) {
+      throw new InsufficientReservesError();
+    }
+
+    var outputReserve = this.reserveOf(outputAmount.token);
+    var inputReserve = this.reserveOf(outputAmount.token.equals(this.token0) ? this.token1 : this.token0);
+    var numerator = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), FEES_DENOMINATOR);
+    var denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), FEES_NUMERATOR);
+    var inputAmount = new TokenAmount(outputAmount.token.equals(this.token0) ? this.token1 : this.token0, JSBI.add(JSBI.divide(numerator, denominator), ONE));
+    return [inputAmount, new PairExternal(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))];
+  };
+
+  _proto.getLiquidityMinted = function getLiquidityMinted(totalSupply, tokenAmountA, tokenAmountB) {
+    !totalSupply.token.equals(this.liquidityToken) ? process.env.NODE_ENV !== "production" ? invariant(false, 'LIQUIDITY') : invariant(false) : void 0;
+    var tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
+    ? [tokenAmountA, tokenAmountB] : [tokenAmountB, tokenAmountA];
+    !(tokenAmounts[0].token.equals(this.token0) && tokenAmounts[1].token.equals(this.token1)) ? process.env.NODE_ENV !== "production" ? invariant(false, 'TOKEN') : invariant(false) : void 0;
+    var liquidity;
+
+    if (JSBI.equal(totalSupply.raw, ZERO)) {
+      liquidity = JSBI.subtract(sqrt(JSBI.multiply(tokenAmounts[0].raw, tokenAmounts[1].raw)), MINIMUM_LIQUIDITY);
+    } else {
+      var amount0 = JSBI.divide(JSBI.multiply(tokenAmounts[0].raw, totalSupply.raw), this.reserve0.raw);
+      var amount1 = JSBI.divide(JSBI.multiply(tokenAmounts[1].raw, totalSupply.raw), this.reserve1.raw);
+      liquidity = JSBI.lessThanOrEqual(amount0, amount1) ? amount0 : amount1;
+    }
+
+    if (!JSBI.greaterThan(liquidity, ZERO)) {
+      throw new InsufficientInputAmountError();
+    }
+
+    return new TokenAmount(this.liquidityToken, liquidity);
+  };
+
+  _proto.getLiquidityValue = function getLiquidityValue(token, totalSupply, liquidity, feeOn, kLast) {
+    if (feeOn === void 0) {
+      feeOn = false;
+    }
+
+    !this.involvesToken(token) ? process.env.NODE_ENV !== "production" ? invariant(false, 'TOKEN') : invariant(false) : void 0;
+    !totalSupply.token.equals(this.liquidityToken) ? process.env.NODE_ENV !== "production" ? invariant(false, 'TOTAL_SUPPLY') : invariant(false) : void 0;
+    !liquidity.token.equals(this.liquidityToken) ? process.env.NODE_ENV !== "production" ? invariant(false, 'LIQUIDITY') : invariant(false) : void 0;
+    !JSBI.lessThanOrEqual(liquidity.raw, totalSupply.raw) ? process.env.NODE_ENV !== "production" ? invariant(false, 'LIQUIDITY') : invariant(false) : void 0;
+    var totalSupplyAdjusted;
+
+    if (!feeOn) {
+      totalSupplyAdjusted = totalSupply;
+    } else {
+      !!!kLast ? process.env.NODE_ENV !== "production" ? invariant(false, 'K_LAST') : invariant(false) : void 0;
+      var kLastParsed = parseBigintIsh(kLast);
+
+      if (!JSBI.equal(kLastParsed, ZERO)) {
+        var rootK = sqrt(JSBI.multiply(this.reserve0.raw, this.reserve1.raw));
+        var rootKLast = sqrt(kLastParsed);
+
+        if (JSBI.greaterThan(rootK, rootKLast)) {
+          var numerator = JSBI.multiply(totalSupply.raw, JSBI.subtract(rootK, rootKLast));
+          var denominator = JSBI.add(JSBI.multiply(rootK, FIVE), rootKLast);
+          var feeLiquidity = JSBI.divide(numerator, denominator);
+          totalSupplyAdjusted = totalSupply.add(new TokenAmount(this.liquidityToken, feeLiquidity));
+        } else {
+          totalSupplyAdjusted = totalSupply;
+        }
+      } else {
+        totalSupplyAdjusted = totalSupply;
+      }
+    }
+
+    return new TokenAmount(token, JSBI.divide(JSBI.multiply(liquidity.raw, this.reserveOf(token).raw), totalSupplyAdjusted.raw));
+  };
+
+  _createClass(PairExternal, [{
+    key: "token0Price",
+    get: function get() {
+      return new Price(this.token0, this.token1, this.tokenAmounts[0].raw, this.tokenAmounts[1].raw);
+    }
+    /**
+     * Returns the current mid price of the pair in terms of token1, i.e. the ratio of reserve0 to reserve1
+     */
+
+  }, {
+    key: "token1Price",
+    get: function get() {
+      return new Price(this.token1, this.token0, this.tokenAmounts[1].raw, this.tokenAmounts[0].raw);
+    }
+  }, {
+    key: "chainId",
+    get: function get() {
+      return this.token0.chainId;
+    }
+  }, {
+    key: "token0",
+    get: function get() {
+      return this.tokenAmounts[0].token;
+    }
+  }, {
+    key: "token1",
+    get: function get() {
+      return this.tokenAmounts[1].token;
+    }
+  }, {
+    key: "reserve0",
+    get: function get() {
+      return this.tokenAmounts[0];
+    }
+  }, {
+    key: "reserve1",
+    get: function get() {
+      return this.tokenAmounts[1];
+    }
+  }]);
+
+  return PairExternal;
 }();
 
 var Route = /*#__PURE__*/function () {
@@ -2264,5 +2473,5 @@ var Fetcher = /*#__PURE__*/function () {
   return Fetcher;
 }();
 
-export { ChainId, Currency, CurrencyAmount, ETHER, FACTORY_ADDRESS, FACTORY_ADDRESS_MAP, Fetcher, Fraction, INIT_CODE_HASH, INIT_CODE_HASH_MAP, InsufficientInputAmountError, InsufficientReservesError, MINIMUM_LIQUIDITY, Pair, Percent, Price, Rounding, Route, Router, Token, TokenAmount, Trade, TradeType, WETH, currencyEquals, inputOutputComparator, tradeComparator };
+export { ChainId, Currency, CurrencyAmount, ETHER, FACTORY_ADDRESS, FACTORY_ADDRESS_MAP, Fetcher, Fraction, INIT_CODE_HASH, INIT_CODE_HASH_MAP, InsufficientInputAmountError, InsufficientReservesError, MINIMUM_LIQUIDITY, Pair, PairExternal, Percent, Price, Rounding, Route, Router, Token, TokenAmount, Trade, TradeType, WETH, currencyEquals, inputOutputComparator, tradeComparator };
 //# sourceMappingURL=sdk.esm.js.map
