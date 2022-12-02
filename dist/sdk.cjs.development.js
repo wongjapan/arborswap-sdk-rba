@@ -1183,10 +1183,11 @@ var PairExternal = /*#__PURE__*/function () {
 
 var Route = /*#__PURE__*/function () {
   function Route(pairs, input, output) {
-    !(pairs.length > 0) ?  invariant(false, 'PAIRS')  : void 0;
-    !pairs.every(function (pair) {
-      return pair.chainId === pairs[0].chainId;
-    }) ?  invariant(false, 'CHAIN_IDS')  : void 0;
+    !(pairs.length > 0) ?  invariant(false, 'PAIRS')  : void 0; // invariant(
+    //   pairs.every(pair => pair.chainId === pairs[0].chainId),
+    //   'CHAIN_IDS'
+    // )
+
     !(input instanceof Token && pairs[0].involvesToken(input) || input === ETHER && pairs[0].involvesToken(WETH[pairs[0].chainId])) ?  invariant(false, 'INPUT')  : void 0;
     !(typeof output === 'undefined' || output instanceof Token && pairs[pairs.length - 1].involvesToken(output) || output === ETHER && pairs[pairs.length - 1].involvesToken(WETH[pairs[0].chainId])) ?  invariant(false, 'OUTPUT')  : void 0;
     var path = [input instanceof Token ? input : WETH[pairs[0].chainId]];
