@@ -10,7 +10,6 @@ import { Percent } from './fractions/percent'
 import { Price } from './fractions/price'
 import { TokenAmount } from './fractions/tokenAmount'
 import { Pair } from './pair'
-import { PairExternal } from './externalpair'
 import { Route } from './route'
 import { currencyEquals, Token, WETH } from './token'
 
@@ -155,7 +154,7 @@ export class Trade {
 
   public constructor(route: Route, amount: CurrencyAmount, tradeType: TradeType) {
     const amounts: TokenAmount[] = new Array(route.path.length)
-    const nextPairs: Pair[] | PairExternal[] = new Array(route.pairs.length)
+    const nextPairs: Pair[] = new Array(route.pairs.length)
     if (tradeType === TradeType.EXACT_INPUT) {
       invariant(currencyEquals(amount.currency, route.input), 'INPUT')
       amounts[0] = wrappedAmount(amount, route.chainId)
@@ -250,12 +249,12 @@ export class Trade {
    * @param bestTrades used in recursion; the current list of best trades
    */
   public static bestTradeExactIn(
-    pairs: any[],
+    pairs: Pair[],
     currencyAmountIn: CurrencyAmount,
     currencyOut: Currency,
     { maxNumResults = 3, maxHops = 3 }: BestTradeOptions = {},
     // used in recursion.
-    currentPairs: Pair[] | PairExternal[] = [],
+    currentPairs: Pair[] = [],
     originalAmountIn: CurrencyAmount = currencyAmountIn,
     bestTrades: Trade[] = []
   ): Trade[] {
