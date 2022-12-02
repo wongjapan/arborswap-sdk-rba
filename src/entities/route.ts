@@ -5,20 +5,21 @@ import { Currency, ETHER } from './currency'
 import { Token, WETH } from './token'
 import { Pair } from './pair'
 import { Price } from './fractions/price'
+import { PairExternal } from './externalpair'
 
 export class Route {
-  public readonly pairs: Pair[]
+  public readonly pairs: Pair[] | PairExternal[]
   public readonly path: Token[]
   public readonly input: Currency
   public readonly output: Currency
   public readonly midPrice: Price
 
-  public constructor(pairs: Pair[], input: Currency, output?: Currency) {
+  public constructor(pairs: Pair[] | PairExternal[], input: Currency, output?: Currency) {
     invariant(pairs.length > 0, 'PAIRS')
-    invariant(
-      pairs.every(pair => pair.chainId === pairs[0].chainId),
-      'CHAIN_IDS'
-    )
+    // invariant(
+    //   pairs.every(pair => pair.chainId === pairs[0].chainId),
+    //   'CHAIN_IDS'
+    // )
     invariant(
       (input instanceof Token && pairs[0].involvesToken(input)) ||
         (input === ETHER && pairs[0].involvesToken(WETH[pairs[0].chainId])),

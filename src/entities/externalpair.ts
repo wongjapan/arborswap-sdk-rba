@@ -20,6 +20,7 @@ import {
 import { sqrt, parseBigintIsh } from '../utils'
 import { InsufficientReservesError, InsufficientInputAmountError } from '../errors'
 import { Token } from './token'
+import { Pair } from './pair'
 
 let PAIR_ADDRESS_CACHE: { [key: string]: string } = {}
 
