@@ -837,7 +837,7 @@ var Pair = /*#__PURE__*/function () {
     if (((_PAIR_ADDRESS_CACHE2 = PAIR_ADDRESS_CACHE) === null || _PAIR_ADDRESS_CACHE2 === void 0 ? void 0 : _PAIR_ADDRESS_CACHE2[key]) === undefined) {
       var _extends3;
 
-      PAIR_ADDRESS_CACHE = _extends({}, PAIR_ADDRESS_CACHE, (_extends3 = {}, _extends3[key] = address.getCreate2Address(EXTERNAL_FACTORY_ADDRESS_MAP[token0.chainId], solidity.keccak256(['bytes'], [solidity.pack(['address', 'address'], [token0.address, token1.address])]), INIT_CODE_HASH_EXTERNAL[token0.chainId]), _extends3));
+      PAIR_ADDRESS_CACHE = _extends({}, PAIR_ADDRESS_CACHE, (_extends3 = {}, _extends3[key] = address.getCreate2Address(EXTERNAL_FACTORY_ADDRESS_MAP[token0.chainId], solidity.keccak256(['bytes'], [solidity.pack(['address', 'address'], [token0.address, token1.address])]), EXTERNAL_CODE_HASH_MAP[token0.chainId]), _extends3));
     }
 
     return PAIR_ADDRESS_CACHE[key];

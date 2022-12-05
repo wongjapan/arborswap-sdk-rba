@@ -18,7 +18,7 @@ import {
   ChainId,
   PairType,
   EXTERNAL_FACTORY_ADDRESS_MAP,
-  INIT_CODE_HASH_EXTERNAL
+  EXTERNAL_CODE_HASH_MAP
 } from '../constants'
 import { sqrt, parseBigintIsh } from '../utils'
 import { InsufficientReservesError, InsufficientInputAmountError } from '../errors'
@@ -64,7 +64,7 @@ export class Pair {
         [key]: getCreate2Address(
           EXTERNAL_FACTORY_ADDRESS_MAP[token0.chainId],
           keccak256(['bytes'], [pack(['address', 'address'], [token0.address, token1.address])]),
-          INIT_CODE_HASH_EXTERNAL[token0.chainId]
+          EXTERNAL_CODE_HASH_MAP[token0.chainId]
         )
       }
     }
