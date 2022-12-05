@@ -29,12 +29,10 @@ var _FACTORY_ADDRESS_MAP, _EXTERNAL_FACTORY_ADD, _INIT_CODE_HASH_MAP, _EXTERNAL_
   TradeType[TradeType["EXACT_OUTPUT"] = 1] = "EXACT_OUTPUT";
 })(exports.TradeType || (exports.TradeType = {}));
 
-var PairType;
-
 (function (PairType) {
   PairType[PairType["INTERNAL"] = 0] = "INTERNAL";
   PairType[PairType["EXTERNAL"] = 1] = "EXTERNAL";
-})(PairType || (PairType = {}));
+})(exports.PairType || (exports.PairType = {}));
 
 (function (Rounding) {
   Rounding[Rounding["ROUND_DOWN"] = 0] = "ROUND_DOWN";
@@ -782,7 +780,7 @@ var PAIR_ADDRESS_CACHE = {};
 
 var composeKey = function composeKey(token0, token1, type) {
   if (type === void 0) {
-    type = PairType.INTERNAL;
+    type = exports.PairType.INTERNAL;
   }
 
   return type + "-" + token0.chainId + "-" + token0.address + "-" + token1.address;
@@ -791,13 +789,13 @@ var composeKey = function composeKey(token0, token1, type) {
 var Pair = /*#__PURE__*/function () {
   function Pair(tokenAmountA, tokenAmountB, pairType) {
     if (pairType === void 0) {
-      pairType = PairType.INTERNAL;
+      pairType = exports.PairType.INTERNAL;
     }
 
     var tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
     ? [tokenAmountA, tokenAmountB] : [tokenAmountB, tokenAmountA];
 
-    if (pairType === PairType.INTERNAL) {
+    if (pairType === exports.PairType.INTERNAL) {
       this.liquidityToken = new Token(tokenAmounts[0].token.chainId, Pair.getAddress(tokenAmounts[0].token, tokenAmounts[1].token), 18, 'Arbor-LPs', 'Arbor LPs');
     } else {
       this.liquidityToken = new Token(tokenAmounts[0].token.chainId, Pair.getAddressEx(tokenAmounts[0].token, tokenAmounts[1].token), 18, 'Arbor-LPs', 'Arbor LPs');
@@ -815,7 +813,7 @@ var Pair = /*#__PURE__*/function () {
         token1 = _ref[1]; // does safety checks
 
 
-    var key = composeKey(token0, token1);
+    var key = composeKey(token0, token1, exports.PairType.INTERNAL);
 
     if (((_PAIR_ADDRESS_CACHE = PAIR_ADDRESS_CACHE) === null || _PAIR_ADDRESS_CACHE === void 0 ? void 0 : _PAIR_ADDRESS_CACHE[key]) === undefined) {
       var _extends2;
@@ -834,7 +832,7 @@ var Pair = /*#__PURE__*/function () {
         token1 = _ref2[1]; // does safety checks
 
 
-    var key = composeKey(token0, token1);
+    var key = composeKey(token0, token1, exports.PairType.EXTERNAL);
 
     if (((_PAIR_ADDRESS_CACHE2 = PAIR_ADDRESS_CACHE) === null || _PAIR_ADDRESS_CACHE2 === void 0 ? void 0 : _PAIR_ADDRESS_CACHE2[key]) === undefined) {
       var _extends3;

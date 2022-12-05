@@ -10,7 +10,8 @@ export {
   FACTORY_ADDRESS_MAP,
   INIT_CODE_HASH,
   INIT_CODE_HASH_MAP,
-  MINIMUM_LIQUIDITY
+  MINIMUM_LIQUIDITY,
+  PairType
 } from './constants'
 
 export * from './errors'
