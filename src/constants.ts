@@ -14,6 +14,11 @@ export enum TradeType {
   EXACT_OUTPUT
 }
 
+export enum PairType {
+  INTERNAL,
+  EXTERNAL
+}
+
 export enum Rounding {
   ROUND_DOWN,
   ROUND_HALF_UP,

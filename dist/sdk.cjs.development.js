@@ -29,6 +29,13 @@ var _FACTORY_ADDRESS_MAP, _EXTERNAL_FACTORY_ADD, _INIT_CODE_HASH_MAP, _EXTERNAL_
   TradeType[TradeType["EXACT_OUTPUT"] = 1] = "EXACT_OUTPUT";
 })(exports.TradeType || (exports.TradeType = {}));
 
+var PairType;
+
+(function (PairType) {
+  PairType[PairType["INTERNAL"] = 0] = "INTERNAL";
+  PairType[PairType["EXTERNAL"] = 1] = "EXTERNAL";
+})(PairType || (PairType = {}));
+
 (function (Rounding) {
   Rounding[Rounding["ROUND_DOWN"] = 0] = "ROUND_DOWN";
   Rounding[Rounding["ROUND_HALF_UP"] = 1] = "ROUND_HALF_UP";
@@ -773,15 +780,30 @@ var Price = /*#__PURE__*/function (_Fraction) {
 
 var PAIR_ADDRESS_CACHE = {};
 
-var composeKey = function composeKey(token0, token1) {
-  return token0.chainId + "-" + token0.address + "-" + token1.address;
+var composeKey = function composeKey(token0, token1, type) {
+  if (type === void 0) {
+    type = PairType.INTERNAL;
+  }
+
+  return type + "-" + token0.chainId + "-" + token0.address + "-" + token1.address;
 };
 
 var Pair = /*#__PURE__*/function () {
-  function Pair(tokenAmountA, tokenAmountB) {
+  function Pair(tokenAmountA, tokenAmountB, pairType) {
+    if (pairType === void 0) {
+      pairType = PairType.INTERNAL;
+    }
+
     var tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
     ? [tokenAmountA, tokenAmountB] : [tokenAmountB, tokenAmountA];
-    this.liquidityToken = new Token(tokenAmounts[0].token.chainId, Pair.getAddress(tokenAmounts[0].token, tokenAmounts[1].token), 18, 'Arbor-LPs', 'Arbor LPs');
+
+    if (pairType === PairType.INTERNAL) {
+      this.liquidityToken = new Token(tokenAmounts[0].token.chainId, Pair.getAddress(tokenAmounts[0].token, tokenAmounts[1].token), 18, 'Arbor-LPs', 'Arbor LPs');
+    } else {
+      this.liquidityToken = new Token(tokenAmounts[0].token.chainId, Pair.getAddressEx(tokenAmounts[0].token, tokenAmounts[1].token), 18, 'Arbor-LPs', 'Arbor LPs');
+    }
+
+    this.pairType = pairType;
     this.tokenAmounts = tokenAmounts;
   }
 
@@ -799,6 +821,25 @@ var Pair = /*#__PURE__*/function () {
       var _extends2;
 
       PAIR_ADDRESS_CACHE = _extends({}, PAIR_ADDRESS_CACHE, (_extends2 = {}, _extends2[key] = address.getCreate2Address(FACTORY_ADDRESS_MAP[token0.chainId], solidity.keccak256(['bytes'], [solidity.pack(['address', 'address'], [token0.address, token1.address])]), INIT_CODE_HASH_MAP[token0.chainId]), _extends2));
+    }
+
+    return PAIR_ADDRESS_CACHE[key];
+  };
+
+  Pair.getAddressEx = function getAddressEx(tokenA, tokenB) {
+    var _PAIR_ADDRESS_CACHE2;
+
+    var _ref2 = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA],
+        token0 = _ref2[0],
+        token1 = _ref2[1]; // does safety checks
+
+
+    var key = composeKey(token0, token1);
+
+    if (((_PAIR_ADDRESS_CACHE2 = PAIR_ADDRESS_CACHE) === null || _PAIR_ADDRESS_CACHE2 === void 0 ? void 0 : _PAIR_ADDRESS_CACHE2[key]) === undefined) {
+      var _extends3;
+
+      PAIR_ADDRESS_CACHE = _extends({}, PAIR_ADDRESS_CACHE, (_extends3 = {}, _extends3[key] = address.getCreate2Address(EXTERNAL_FACTORY_ADDRESS_MAP[token0.chainId], solidity.keccak256(['bytes'], [solidity.pack(['address', 'address'], [token0.address, token1.address])]), INIT_CODE_HASH_EXTERNAL[token0.chainId]), _extends3));
     }
 
     return PAIR_ADDRESS_CACHE[key];

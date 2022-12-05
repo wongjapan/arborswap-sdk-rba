@@ -9,6 +9,10 @@ export declare enum TradeType {
     EXACT_INPUT = 0,
     EXACT_OUTPUT = 1
 }
+export declare enum PairType {
+    INTERNAL = 0,
+    EXTERNAL = 1
+}
 export declare enum Rounding {
     ROUND_DOWN = 0,
     ROUND_HALF_UP = 1,
