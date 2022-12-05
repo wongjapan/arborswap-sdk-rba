@@ -15,7 +15,10 @@ import {
   FIVE,
   FEES_NUMERATOR,
   FEES_DENOMINATOR,
-  ChainId
+  ChainId,
+  PairType,
+  EXTERNAL_FACTORY_ADDRESS_MAP,
+  INIT_CODE_HASH_EXTERNAL
 } from '../constants'
 import { sqrt, parseBigintIsh } from '../utils'
 import { InsufficientReservesError, InsufficientInputAmountError } from '../errors'
@@ -23,16 +26,18 @@ import { Token } from './token'
 
 let PAIR_ADDRESS_CACHE: { [key: string]: string } = {}
 
-const composeKey = (token0: Token, token1: Token) => `${token0.chainId}-${token0.address}-${token1.address}`
+const composeKey = (token0: Token, token1: Token, type: PairType = PairType.INTERNAL) =>
+  `${type}-${token0.chainId}-${token0.address}-${token1.address}`
 
 export class Pair {
   public readonly liquidityToken: Token
+  public readonly pairType: PairType
   private readonly tokenAmounts: [TokenAmount, TokenAmount]
 
   public static getAddress(tokenA: Token, tokenB: Token): string {
     const [token0, token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA] // does safety checks
 
-    const key = composeKey(token0, token1)
+    const key = composeKey(token0, token1, PairType.INTERNAL)
 
     if (PAIR_ADDRESS_CACHE?.[key] === undefined) {
       PAIR_ADDRESS_CACHE = {
@@ -48,17 +53,48 @@ export class Pair {
     return PAIR_ADDRESS_CACHE[key]
   }
 
-  public constructor(tokenAmountA: TokenAmount, tokenAmountB: TokenAmount) {
+  public static getAddressEx(tokenA: Token, tokenB: Token): string {
+    const [token0, token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA] // does safety checks
+
+    const key = composeKey(token0, token1, PairType.EXTERNAL)
+
+    if (PAIR_ADDRESS_CACHE?.[key] === undefined) {
+      PAIR_ADDRESS_CACHE = {
+        ...PAIR_ADDRESS_CACHE,
+        [key]: getCreate2Address(
+          EXTERNAL_FACTORY_ADDRESS_MAP[token0.chainId],
+          keccak256(['bytes'], [pack(['address', 'address'], [token0.address, token1.address])]),
+          INIT_CODE_HASH_EXTERNAL[token0.chainId]
+        )
+      }
+    }
+
+    return PAIR_ADDRESS_CACHE[key]
+  }
+
+  public constructor(tokenAmountA: TokenAmount, tokenAmountB: TokenAmount, pairType: PairType = PairType.INTERNAL) {
     const tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
       ? [tokenAmountA, tokenAmountB]
       : [tokenAmountB, tokenAmountA]
-    this.liquidityToken = new Token(
-      tokenAmounts[0].token.chainId,
-      Pair.getAddress(tokenAmounts[0].token, tokenAmounts[1].token),
-      18,
-      'Arbor-LPs',
-      'Arbor LPs'
-    )
+    if (pairType === PairType.INTERNAL) {
+      this.liquidityToken = new Token(
+        tokenAmounts[0].token.chainId,
+        Pair.getAddress(tokenAmounts[0].token, tokenAmounts[1].token),
+        18,
+        'Arbor-LPs',
+        'Arbor LPs'
+      )
+    } else {
+      this.liquidityToken = new Token(
+        tokenAmounts[0].token.chainId,
+        Pair.getAddressEx(tokenAmounts[0].token, tokenAmounts[1].token),
+        18,
+        'Arbor-LPs',
+        'Arbor LPs'
+      )
+    }
+
+    this.pairType = pairType
     this.tokenAmounts = tokenAmounts as [TokenAmount, TokenAmount]
   }
 
