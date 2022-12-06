@@ -1455,7 +1455,8 @@ var Router = /*#__PURE__*/function () {
 
   Router.swapCallParameters = function swapCallParameters(trade, options) {
     var etherIn = trade.inputAmount.currency === ETHER;
-    var etherOut = trade.outputAmount.currency === ETHER; // the router does not support both ether in and out
+    var etherOut = trade.outputAmount.currency === ETHER;
+    var pairType = trade.route.pairs[0].pairType; // the router does not support both ether in and out
 
     !!(etherIn && etherOut) ? process.env.NODE_ENV !== "production" ? invariant(false, 'ETHER_IN_OUT') : invariant(false) : void 0;
     !(!('ttl' in options) || options.ttl > 0) ? process.env.NODE_ENV !== "production" ? invariant(false, 'TTL') : invariant(false) : void 0;
@@ -1474,19 +1475,20 @@ var Router = /*#__PURE__*/function () {
     switch (trade.tradeType) {
       case TradeType.EXACT_INPUT:
         if (etherIn) {
-          methodName = useFeeOnTransfer ? 'swapExactETHForTokensSupportingFeeOnTransferTokens' : 'swapExactETHForTokens'; // (uint amountOutMin, address[] calldata path, address to, uint deadline)
+          methodName = pairType == PairType.INTERNAL ? 'swapExactETHForTokens' : 'swapExactETHForTokensEx'; // (address token, uint amountOutMin, address to, uint deadline)
 
-          args = [amountOut, path, to, deadline];
+          args = [path[1], amountOut, to, deadline];
           value = amountIn;
         } else if (etherOut) {
-          methodName = useFeeOnTransfer ? 'swapExactTokensForETHSupportingFeeOnTransferTokens' : 'swapExactTokensForETH'; // (uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
+          methodName = pairType == PairType.INTERNAL ? 'swapExactTokensForETH' : 'swapExactTokensForETHEx'; // (address token, uint amountIn, uint amountOutMin, address to, uint deadline)
 
-          args = [amountIn, amountOut, path, to, deadline];
+          args = [path[0], amountIn, amountOut, to, deadline];
           value = ZERO_HEX;
         } else {
-          methodName = useFeeOnTransfer ? 'swapExactTokensForTokensSupportingFeeOnTransferTokens' : 'swapExactTokensForTokens'; // (uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
+          methodName = pairType == PairType.INTERNAL ? 'swapExactTokensForTokens' : 'swapExactTokensForTokensEx'; // (uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
+          // (address tokenA, address tokenB, uint amountIn, uint amountOutMin, address to, uint deadline)
 
-          args = [amountIn, amountOut, path, to, deadline];
+          args = [path[0], path[1], amountIn, amountOut, to, deadline];
           value = ZERO_HEX;
         }
 
@@ -1496,19 +1498,19 @@ var Router = /*#__PURE__*/function () {
         !!useFeeOnTransfer ? process.env.NODE_ENV !== "production" ? invariant(false, 'EXACT_OUT_FOT') : invariant(false) : void 0;
 
         if (etherIn) {
-          methodName = 'swapETHForExactTokens'; // (uint amountOut, address[] calldata path, address to, uint deadline)
+          methodName = pairType == PairType.INTERNAL ? 'swapETHForExactTokens' : 'swapETHForExactTokensEx'; // (uint amountOut, address[] calldata path, address to, uint deadline)
 
-          args = [amountOut, path, to, deadline];
+          args = [path[1], amountOut, to, deadline];
           value = amountIn;
         } else if (etherOut) {
-          methodName = 'swapTokensForExactETH'; // (uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
+          methodName = pairType == PairType.INTERNAL ? 'swapTokensForExactETH' : 'swapTokensForExactETHEx'; // (uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
 
-          args = [amountOut, amountIn, path, to, deadline];
+          args = [path[0], amountIn, amountOut, to, deadline];
           value = ZERO_HEX;
         } else {
-          methodName = 'swapTokensForExactTokens'; // (uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
+          methodName = pairType == PairType.INTERNAL ? 'swapTokensForExactTokens' : 'swapTokensForExactTokensEx'; // (uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
 
-          args = [amountOut, amountIn, path, to, deadline];
+          args = [path[0], path[1], amountIn, amountOut, to, deadline];
           value = ZERO_HEX;
         }
 
