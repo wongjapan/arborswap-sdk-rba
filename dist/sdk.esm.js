@@ -1480,7 +1480,7 @@ var Router = /*#__PURE__*/function () {
           args = [path[1], amountOut, to, deadline];
           value = amountIn;
         } else if (etherOut) {
-          methodName = pairType == PairType.INTERNAL ? 'swapExactTokensForETH' : 'swapExactTokensForETHEx'; // (address token, uint amountIn, uint amountOutMin, address to, uint deadline)
+          methodName = pairType == PairType.INTERNAL ? 'swapExactTokenForETH' : 'swapExactTokenForETHEx'; // (address token, uint amountIn, uint amountOutMin, address to, uint deadline)
 
           args = [path[0], amountIn, amountOut, to, deadline];
           value = ZERO_HEX;
