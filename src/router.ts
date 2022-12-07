@@ -112,7 +112,7 @@ export abstract class Router {
           methodName = pairType == PairType.INTERNAL ? 'swapExactTokensForTokens' : 'swapExactTokensForTokensEx'
           // (uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
           // (address tokenA, address tokenB, uint amountIn, uint amountOutMin, address to, uint deadline)
-          args = [path[0], path[1], amountIn, amountOut, to, deadline]
+          args = [path[0], path[path.length - 1], amountIn, amountOut, to, deadline]
           value = ZERO_HEX
         }
         break
@@ -131,7 +131,7 @@ export abstract class Router {
         } else {
           methodName = pairType == PairType.INTERNAL ? 'swapTokensForExactTokens' : 'swapTokensForExactTokensEx'
           // (uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
-          args = [path[0], path[1], amountIn, amountOut, to, deadline]
+          args = [path[0], path[path.length - 1], amountIn, amountOut, to, deadline]
           value = ZERO_HEX
         }
         break

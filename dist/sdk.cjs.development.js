@@ -1486,7 +1486,7 @@ var Router = /*#__PURE__*/function () {
           methodName = pairType == exports.PairType.INTERNAL ? 'swapExactTokensForTokens' : 'swapExactTokensForTokensEx'; // (uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
           // (address tokenA, address tokenB, uint amountIn, uint amountOutMin, address to, uint deadline)
 
-          args = [path[0], path[1], amountIn, amountOut, to, deadline];
+          args = [path[0], path[path.length - 1], amountIn, amountOut, to, deadline];
           value = ZERO_HEX;
         }
 
@@ -1508,7 +1508,7 @@ var Router = /*#__PURE__*/function () {
         } else {
           methodName = pairType == exports.PairType.INTERNAL ? 'swapTokensForExactTokens' : 'swapTokensForExactTokensEx'; // (uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
 
-          args = [path[0], path[1], amountIn, amountOut, to, deadline];
+          args = [path[0], path[path.length - 1], amountIn, amountOut, to, deadline];
           value = ZERO_HEX;
         }
 
