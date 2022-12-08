@@ -1,4 +1,4 @@
-import { TradeType, PairType } from './constants'
+import { TradeType } from './constants'
 import invariant from 'tiny-invariant'
 import { validateAndParseAddress } from './utils'
 import { CurrencyAmount, ETHER, Percent, Trade } from './entities'
@@ -76,7 +76,7 @@ export abstract class Router {
   public static swapCallParameters(trade: Trade, options: TradeOptions | TradeOptionsDeadline): SwapParameters {
     const etherIn = trade.inputAmount.currency === ETHER
     const etherOut = trade.outputAmount.currency === ETHER
-    const pairType = trade.route.pairs[0].pairType
+    const pairType = trade.route.pairs[0].pairType.toString()
 
     // the router does not support both ether in and out
     invariant(!(etherIn && etherOut), 'ETHER_IN_OUT')
@@ -99,39 +99,39 @@ export abstract class Router {
     switch (trade.tradeType) {
       case TradeType.EXACT_INPUT:
         if (etherIn) {
-          methodName = pairType == PairType.INTERNAL ? 'swapExactETHForTokens' : 'swapExactETHForTokensEx'
+          methodName = 'swapExactETHForTokens'
           // (address token, uint amountOutMin, address to, uint deadline)
-          args = [path[1], amountOut, to, deadline]
+          args = [path[1], amountOut, to, deadline, pairType]
           value = amountIn
         } else if (etherOut) {
-          methodName = pairType == PairType.INTERNAL ? 'swapExactTokenForETH' : 'swapExactTokenForETHEx'
+          methodName = 'swapExactTokenForETH'
           // (address token, uint amountIn, uint amountOutMin, address to, uint deadline)
-          args = [path[0], amountIn, amountOut, to, deadline]
+          args = [path[0], amountIn, amountOut, to, deadline, pairType]
           value = ZERO_HEX
         } else {
-          methodName = pairType == PairType.INTERNAL ? 'swapExactTokensForTokens' : 'swapExactTokensForTokensEx'
+          methodName = 'swapExactTokensForTokens'
           // (uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
           // (address tokenA, address tokenB, uint amountIn, uint amountOutMin, address to, uint deadline)
-          args = [path[0], path[path.length - 1], amountIn, amountOut, to, deadline]
+          args = [path[0], path[path.length - 1], amountIn, amountOut, to, deadline, pairType]
           value = ZERO_HEX
         }
         break
       case TradeType.EXACT_OUTPUT:
         invariant(!useFeeOnTransfer, 'EXACT_OUT_FOT')
         if (etherIn) {
-          methodName = pairType == PairType.INTERNAL ? 'swapETHForExactTokens' : 'swapETHForExactTokensEx'
+          methodName = 'swapETHForExactTokens'
           // (uint amountOut, address[] calldata path, address to, uint deadline)
-          args = [path[1], amountOut, to, deadline]
+          args = [path[1], amountOut, to, deadline, pairType]
           value = amountIn
         } else if (etherOut) {
-          methodName = pairType == PairType.INTERNAL ? 'swapTokensForExactETH' : 'swapTokensForExactETHEx'
+          methodName = 'swapTokensForExactETH'
           // (uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
-          args = [path[0], amountIn, amountOut, to, deadline]
+          args = [path[0], amountIn, amountOut, to, deadline, pairType]
           value = ZERO_HEX
         } else {
-          methodName = pairType == PairType.INTERNAL ? 'swapTokensForExactTokens' : 'swapTokensForExactTokensEx'
+          methodName = 'swapTokensForExactTokens'
           // (uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
-          args = [path[0], path[path.length - 1], amountIn, amountOut, to, deadline]
+          args = [path[0], path[path.length - 1], amountIn, amountOut, to, deadline, pairType]
           value = ZERO_HEX
         }
         break

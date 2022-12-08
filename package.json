@@ -1,7 +1,7 @@
 {
   "name": "@arborswap/sdk",
   "license": "MIT",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "🛠 An SDK for building applications on top of Arborswap.",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
